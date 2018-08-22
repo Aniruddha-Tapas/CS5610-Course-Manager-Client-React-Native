@@ -1,0 +1,85 @@
+import React from 'react'
+import {View, TextInput, ScrollView} from 'react-native'
+import {Text, FormLabel, FormInput, FormValidationMessage, Divider, Button} from 'react-native-elements'
+
+class Exam extends React.Component{
+
+    constructor(props){
+        super(props);
+        this.state = {
+            topicId: 1,
+            title: '',
+            description: ''
+        };
+        this.createExam = this.createExam.bind(this);
+    }
+
+    componentDidMount() {
+        const topicId = this.props.navigation.getParam("topicId");
+        this.setState({topicId: topicId})
+
+    }
+
+    updateForm(newState) {
+        this.setState(newState)
+    }
+
+    createExam(){
+        return fetch("http://localhost:8080/api/topic/"+this.state.topicId+"/exam",{
+            body: JSON.stringify({title: this.state.title,
+                description: this.state.description}),
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST'
+        }).then( (response) =>
+            response.json()
+                .then((response1) => {
+                    this.props.navigation.navigate("QuestionsForExam", {examId: response1.id, topicId: this.state.topicId})
+                })
+
+
+        )
+    }
+
+    render() {
+        return (
+            <ScrollView style={{padding: 20}}>
+
+                <FormLabel>Exam Title</FormLabel>
+                <FormInput value={this.state.title} onChangeText={
+                    text => this.updateForm({title: text})
+                }/>
+
+                {this.state.title === '' ?
+                    <FormValidationMessage>
+                        Title is required
+                    </FormValidationMessage> : null}
+
+
+                <FormLabel>Exam Description</FormLabel>
+                <FormInput value={this.state.description} onChangeText={
+                    text => this.updateForm({description: text})
+                }/>
+                {this.state.description === '' ?
+                    <FormValidationMessage>
+                        Description is required
+                    </FormValidationMessage> : null}
+
+
+
+
+                <View style={{flexDirection: 'row'}}>
+                    <Button title="Cancel"
+                            backgroundColor="red"
+                            onPress={() => this.props.navigation.goBack()}/>
+                    <Button title="Submit"
+                            backgroundColor="blue"
+                                onPress={() => this.createExam()}/>
+                </View>
+                <View style={{height: 60}}/>
+
+            </ScrollView>
+        )
+    }
+}
+
+export default Exam
